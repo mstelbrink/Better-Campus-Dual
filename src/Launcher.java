@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -20,6 +21,14 @@ public class Launcher implements ActionListener {
     private String username;
     private char[] password;
     private double averageGrade;
+    private double firstSemesterAverage;
+    private double secondSemesterAverage;
+    private double thirdSemesterAverage;
+    private double fourthSemesterAverage;
+    private double fifthSemesterAverage;
+    private double sixthSemesterAverage;
+
+
 
     public static void main( String[] args ) {
 
@@ -76,35 +85,80 @@ public class Launcher implements ActionListener {
 
 
         HashMap<String, Double> grades = new HashMap<>();
+        HashMap<String, Integer> credits = new HashMap<>();
+        HashMap<String, String> periods = new HashMap<>();
+        ArrayList<String> periodNames = new ArrayList<>();
         for (int i = 1; i < 100; i++) {
             String module = doc.select("#node-" + i + " > td:nth-of-type(1)").text();
             String grade = doc.select("#node-" + i + " > td:nth-of-type(2)").text();
+            String credit = doc.select("#node-" + i + " > td:nth-of-type(4)").text();
+            String period = doc.select("#node-" + i + " > td:nth-of-type(8)").text();
             if (module.isEmpty() || grade.isEmpty()) {
                 break;
             }
             grade = grade.replace(',','.');
             grades.put(module, Double.valueOf(grade));
-        }
-
-        HashMap<String, Integer> credits = new HashMap<>();
-        for (int i = 1; i < 100; i++) {
-            String module = doc.select("#node-" + i + " > td:nth-of-type(1)").text();
-            String credit = doc.select("#node-" + i + " > td:nth-of-type(4)").text();
-            if (module.isEmpty() || credit.isEmpty()) {
-                break;
-            }
             credits.put(module, Integer.parseInt(credit));
+            periods.put(module, period);
+            if (!(periodNames.contains(period))) {
+                periodNames.add(period);
+            }
         }
 
-        double weightedGrade = 0;
+        double weightedGrade;
+        double weightedGradeSum = 0;
         int cpSum = 0;
 
+        double firstSemesterWeighted = 0;
+        double secondSemesterWeighted = 0;
+        double thirdSemesterWeighted = 0;
+        double fourthSemesterWeighted = 0;
+        double fifthSemesterWeighted = 0;
+        double sixthSemesterWeighted = 0;
+
+        int firstSemesterCPSum = 0;
+        int secondSemesterCPSum = 0;
+        int thirdSemesterCPSum = 0;
+        int fourthSemesterCPSum = 0;
+        int fifthSemesterCPSum = 0;
+        int sixthSemesterCPSum = 0;
+
         for (String key : grades.keySet()) {
-            weightedGrade += grades.get(key) * credits.get(key);
+            weightedGrade = grades.get(key) * credits.get(key);
+            weightedGradeSum += weightedGrade;
             cpSum += credits.get(key);
+
+            if (periods.get(key).equals(periodNames.get(0))) {
+                firstSemesterWeighted += weightedGrade;
+                firstSemesterCPSum += credits.get(key);
+            } else if (periods.get(key).equals(periodNames.get(1))) {
+                secondSemesterWeighted += weightedGrade;
+                secondSemesterCPSum += credits.get(key);
+            } else if (periods.get(key).equals(periodNames.get(2))) {
+                thirdSemesterWeighted += weightedGrade;
+                thirdSemesterCPSum += credits.get(key);
+            } else if (periods.get(key).equals(periodNames.get(3))) {
+                fourthSemesterWeighted += weightedGrade;
+                fourthSemesterCPSum += credits.get(key);
+            } else if (periods.get(key).equals(periodNames.get(4))) {
+                fifthSemesterWeighted += weightedGrade;
+                fifthSemesterCPSum += credits.get(key);
+            } else if (periods.get(key).equals(periodNames.get(5))) {
+                sixthSemesterWeighted += weightedGrade;
+                sixthSemesterCPSum += credits.get(key);
+            } else {
+                System.out.println("Could not add semester-specific grade.");
+            }
         }
 
-        averageGrade = Math.round((weightedGrade / cpSum) * 100.0) / 100.0;
+        averageGrade = Math.round((weightedGradeSum / cpSum) * 100.0) / 100.0;
+        firstSemesterAverage = Math.round((firstSemesterWeighted / firstSemesterCPSum) * 100.0) / 100.0;
+        secondSemesterAverage = Math.round((secondSemesterWeighted / secondSemesterCPSum) * 100.0) / 100.0;
+        thirdSemesterAverage = Math.round((thirdSemesterWeighted / thirdSemesterCPSum) * 100.0) / 100.0;
+        fourthSemesterAverage = Math.round((fourthSemesterWeighted / fourthSemesterCPSum) * 100.0) / 100.0;
+        fifthSemesterAverage = Math.round((fifthSemesterWeighted / fifthSemesterCPSum) * 100.0) / 100.0;
+        sixthSemesterAverage = Math.round((sixthSemesterWeighted / sixthSemesterCPSum) * 100.0) / 100.0;
+
     }
 
     @Override
@@ -116,7 +170,7 @@ public class Launcher implements ActionListener {
         try {
             login();
             frame.setVisible(false);
-            new StatsFrame(new StatsPanel(averageGrade));
+            new StatsFrame(new StatsPanel(averageGrade, firstSemesterAverage, secondSemesterAverage, thirdSemesterAverage, fourthSemesterAverage, fifthSemesterAverage, sixthSemesterAverage));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
