@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 
 
 public class Launcher implements ActionListener {
@@ -18,9 +19,7 @@ public class Launcher implements ActionListener {
     private JPasswordField pf;
     private String username;
     private char[] password;
-    private String loginURL = "https://erp.campus-dual.de/sap/bc/webdynpro/sap/zba_initss?sap-client=100&sap-language=" +
-            "de&uri=https://selfservice.campus-dual.de/index/login";
-    private String gradesURL = "https://selfservice.campus-dual.de/acwork/index";
+    private double averageGrade;
 
     public static void main( String[] args ) {
 
@@ -49,6 +48,8 @@ public class Launcher implements ActionListener {
 
     public void login() throws IOException {
 
+        String loginURL = "https://erp.campus-dual.de/sap/bc/webdynpro/sap/zba_initss?sap-client=100&sap-language=" +
+                "de&uri=https://selfservice.campus-dual.de/index/login";
         Connection.Response loginForm = Jsoup.connect(loginURL)
                 .method(Connection.Method.GET)
                 .execute();
@@ -66,17 +67,44 @@ public class Launcher implements ActionListener {
                 .method(Method.POST)
                 .execute();
 
+        String gradesURL = "https://selfservice.campus-dual.de/acwork/index";
         Document doc = Jsoup.connect(gradesURL)
                     .cookies(loginResponse.cookies())
                     .get();
 
         Arrays.fill(password, (char) 0);
 
+
+        HashMap<String, Double> grades = new HashMap<>();
         for (int i = 1; i < 100; i++) {
-            if (doc.select("tr#node-" + i).text().isEmpty()) break;
-            String tr = doc.select("tr#node-" + i).text();
-            System.out.println(tr);
+            String module = doc.select("#node-" + i + " > td:nth-of-type(1)").text();
+            String grade = doc.select("#node-" + i + " > td:nth-of-type(2)").text();
+            if (module.isEmpty() || grade.isEmpty()) {
+                break;
+            }
+            grade = grade.replace(',','.');
+            grades.put(module, Double.valueOf(grade));
         }
+
+        HashMap<String, Integer> credits = new HashMap<>();
+        for (int i = 1; i < 100; i++) {
+            String module = doc.select("#node-" + i + " > td:nth-of-type(1)").text();
+            String credit = doc.select("#node-" + i + " > td:nth-of-type(4)").text();
+            if (module.isEmpty() || credit.isEmpty()) {
+                break;
+            }
+            credits.put(module, Integer.parseInt(credit));
+        }
+
+        double weightedGrade = 0;
+        int cpSum = 0;
+
+        for (String key : grades.keySet()) {
+            weightedGrade += grades.get(key) * credits.get(key);
+            cpSum += credits.get(key);
+        }
+
+        averageGrade = Math.round((weightedGrade / cpSum) * 100.0) / 100.0;
     }
 
     @Override
@@ -88,6 +116,7 @@ public class Launcher implements ActionListener {
         try {
             login();
             frame.setVisible(false);
+            new StatsFrame(new StatsPanel(averageGrade));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
