@@ -1,11 +1,11 @@
 import javax.swing.*;
 import java.awt.*;
 
-public class StatsPanel extends JPanel {
+public class AverageGradePanel extends JPanel {
 
-    public StatsPanel(double averageGrade, double firstSemesterAverage, double secondSemesterAverage,
-                      double thirdSemesterAverage, double fourthSemesterAverage, double fifthSemesterAverage,
-                      double sixthSemesterAverage) {
+    public AverageGradePanel(double averageGrade, double firstSemesterAverage, double secondSemesterAverage,
+                             double thirdSemesterAverage, double fourthSemesterAverage, double fifthSemesterAverage,
+                             double sixthSemesterAverage) {
         setLayout(new GridLayout(7, 0));
         add(new Label("Average Grade: " + averageGrade));
         add(new Label("First Semester: " + firstSemesterAverage));

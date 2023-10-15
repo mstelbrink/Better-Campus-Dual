@@ -27,6 +27,7 @@ public class Launcher implements ActionListener {
     private double fourthSemesterAverage;
     private double fifthSemesterAverage;
     private double sixthSemesterAverage;
+    private HashMap<Integer, Integer> distributionMap;
 
 
 
@@ -83,11 +84,17 @@ public class Launcher implements ActionListener {
 
         Arrays.fill(password, (char) 0);
 
-
         HashMap<String, Double> grades = new HashMap<>();
         HashMap<String, Integer> credits = new HashMap<>();
         HashMap<String, String> periods = new HashMap<>();
         ArrayList<String> periodNames = new ArrayList<>();
+        distributionMap = new HashMap<>();
+        distributionMap.put(1, 0);
+        distributionMap.put(2, 0);
+        distributionMap.put(3, 0);
+        distributionMap.put(4, 0);
+        distributionMap.put(5, 0);
+
         for (int i = 1; i < 100; i++) {
             String module = doc.select("#node-" + i + " > td:nth-of-type(1)").text();
             String grade = doc.select("#node-" + i + " > td:nth-of-type(2)").text();
@@ -102,6 +109,19 @@ public class Launcher implements ActionListener {
             periods.put(module, period);
             if (!(periodNames.contains(period))) {
                 periodNames.add(period);
+            }
+
+            double gradeValue = Double.parseDouble(grade);
+            if (gradeValue >= 1 && gradeValue <= 1.5) {
+                distributionMap.put(1, distributionMap.get(1) + 1);
+            } else if (gradeValue > 1.5 && gradeValue <= 2.5) {
+                distributionMap.put(2, distributionMap.get(2) + 1);
+            } else if (gradeValue > 2.5 && gradeValue <= 3.5) {
+                distributionMap.put(3, distributionMap.get(3) + 1);
+            } else if (gradeValue > 3.5 && gradeValue <= 4) {
+                distributionMap.put(4, distributionMap.get(4) + 1);
+            } else if (gradeValue > 4) {
+                distributionMap.put(5, distributionMap.get(5) + 1);
             }
         }
 
@@ -158,7 +178,6 @@ public class Launcher implements ActionListener {
         fourthSemesterAverage = Math.round((fourthSemesterWeighted / fourthSemesterCPSum) * 100.0) / 100.0;
         fifthSemesterAverage = Math.round((fifthSemesterWeighted / fifthSemesterCPSum) * 100.0) / 100.0;
         sixthSemesterAverage = Math.round((sixthSemesterWeighted / sixthSemesterCPSum) * 100.0) / 100.0;
-
     }
 
     @Override
@@ -170,7 +189,9 @@ public class Launcher implements ActionListener {
         try {
             login();
             frame.setVisible(false);
-            new StatsFrame(new StatsPanel(averageGrade, firstSemesterAverage, secondSemesterAverage, thirdSemesterAverage, fourthSemesterAverage, fifthSemesterAverage, sixthSemesterAverage));
+            new StatsFrame(new AverageGradePanel(averageGrade, firstSemesterAverage, secondSemesterAverage,
+                    thirdSemesterAverage, fourthSemesterAverage, fifthSemesterAverage, sixthSemesterAverage),
+                    new GradeDistributionPanel(distributionMap));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
