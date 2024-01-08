@@ -98,6 +98,9 @@ public class Launcher implements ActionListener {
         for (int i = 1; i < 100; i++) {
             String module = doc.select("#node-" + i + " > td:nth-of-type(1)").text();
             String grade = doc.select("#node-" + i + " > td:nth-of-type(2)").text();
+            if (grade.equals("N")) {
+                break;
+            }
             String credit = doc.select("#node-" + i + " > td:nth-of-type(4)").text();
             String period = doc.select("#node-" + i + " > td:nth-of-type(8)").text();
             if (module.isEmpty() || grade.isEmpty()) {
